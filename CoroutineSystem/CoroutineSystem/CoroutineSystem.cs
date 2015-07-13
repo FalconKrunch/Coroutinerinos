@@ -97,6 +97,7 @@ namespace Coroutines
 				{
 					coroutines.Push((Coroutine)value);
 					shouldSwitch = true;
+					Console.WriteLine("Switching to " + value);
 					break;
 				}
 				else //print any uncaught values

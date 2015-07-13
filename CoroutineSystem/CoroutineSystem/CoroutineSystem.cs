@@ -49,8 +49,8 @@ namespace Coroutines
 			curEnumeration = function().GetEnumerator();
 		}
 		public virtual IEnumerable function() { return "Empty routine"; }
-		public Attributes attributes;
 		public IEnumerator curEnumeration;
+
 		public MessageMapper mapper = new MessageMapper();
 		~Coroutine()
 		{
@@ -83,15 +83,15 @@ namespace Coroutines
 				}
 			}
 		}
-		public void Update()
+		IEnumerable Update()
 		{
 			shouldSwitch = false;
 			if (coroutines.Count == 0) //early out
-				return;
-			IEnumerator curEnumeration = coroutines.Peek().curEnumeration; //grab the current function position
-			while (curEnumeration.MoveNext()) //move to next yield
+				yield break;
+			
+			while (coroutines.Peek().curEnumeration.MoveNext()) //move to next yield
 			{
-				var value = curEnumeration.Current; //accept any return value, this is because we don't want a InvalidCastException
+				var value = coroutines.Peek().curEnumeration.Current; //accept any return value, this is because we don't want a InvalidCastException
 				Type type = value.GetType();
 				if (type.IsSubclassOf(typeof(Coroutine))) //if type is a subclass of coroutine, add it to the stack and set switch flag
 				{
@@ -103,15 +103,18 @@ namespace Coroutines
 				{
 					Console.WriteLine("Uncaught type " + value.GetType().ToString() + ": " + value);
 				}
+				yield break;
 			}
 			if (!shouldSwitch)
 			{
-				if (coroutines.Peek().attributes.HasFlag(Coroutine.Attributes.Looping)) //reset enumerator and prevent coroutine from being popped
-				{
-					coroutines.Peek().curEnumeration = coroutines.Peek().function().GetEnumerator();
-					return;
-				}
 				coroutines.Pop();
+			}
+		}
+		public void Tick()
+		{
+			foreach(var value in Update())
+			{
+				Console.WriteLine(value);
 			}
 		}
 

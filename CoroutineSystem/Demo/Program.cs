@@ -41,16 +41,18 @@ namespace Program
 			int1 = argInt;
 			string1 = argString;
 			mapper.mappedMessages.Add(typeof(StopMessage), new MessageDelegate(Stop)); //link Stop function to the StopMessage, these could be any type or name
-			attributes |= Attributes.Looping; //Make this coroutine loop when it ends
 		}
 		override public IEnumerable function()
 		{
-			//returning strings and integers do nothing, they just serve demonstration purposes.
-			yield return 1;
-			yield return int1;
-			yield return new TestFunc2(); //Start running TestFunc2 from this point
-			yield return string1; 
-			yield return 15;
+			while (true)
+			{
+				//returning strings and integers do nothing, they just serve demonstration purposes.
+				yield return 1;
+				yield return int1;
+				yield return new TestFunc2(); //Start running TestFunc2 from this point
+				yield return string1;
+				yield return 15;
+			}
 		}
 	}
 
@@ -58,16 +60,19 @@ namespace Program
 	{
 		public TestFunc2()
 		{
-			attributes |= Attributes.Looping;
+			
 		}
 		override public IEnumerable function()
 		{
-			int fib1 = TestMath.Fibonacci(14);
-			int fib2 = TestMath.Fibonacci(13);
-			yield return TestMath.Fibonacci(12);
-			yield return fib2;
-			yield return fib1;
-			yield return "Hello from testFunction2";
+			while (true)
+			{
+				int fib1 = TestMath.Fibonacci(14);
+				int fib2 = TestMath.Fibonacci(13);
+				yield return TestMath.Fibonacci(12);
+				yield return fib2;
+				yield return fib1;
+				yield return "Hello from testFunction2";
+			}
 		}
 	}
 	class Program
@@ -82,7 +87,7 @@ namespace Program
 			while (true)
 			{
 				c++;
-				system.Update();
+				system.Tick();
 				if (c % 10 == 0) //send stop message every 10 updates
 					system.Send(typeof(StopMessage));
 			}

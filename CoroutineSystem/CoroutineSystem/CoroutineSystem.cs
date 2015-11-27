@@ -32,25 +32,24 @@ namespace Coroutines
 	{
 
 	}
-	public delegate void MessageDelegate();
+	public delegate void MessageDelegate(Message message);
 	public class MessageMapper
 	{
 		public Dictionary<Type, MessageDelegate> mappedMessages = new Dictionary<Type, MessageDelegate>();
 	}
 	public class Coroutine
 	{
-		[Flags]
-		public enum Attributes
-		{
-			Looping = 1,
-		}
 		public Coroutine()
 		{
 			curEnumeration = function().GetEnumerator();
 		}
 		public virtual IEnumerable function() { return "Empty routine"; }
 		public IEnumerator curEnumeration;
-
+        public bool shouldTerminate;
+        public void Terminate()
+        {
+            shouldTerminate = true;
+        }
 		public MessageMapper mapper = new MessageMapper();
 		~Coroutine()
 		{
@@ -66,20 +65,21 @@ namespace Coroutines
 		{
 			coroutines.Push(coroutine);
 		}
-		public void Send(Type message)
+		public void Send(Message message)
 		{
 			for (int i = 0; i < coroutines.Count; i++)
 			{
 				Coroutine coroutine = coroutines.ElementAt(i);
-				if (coroutine.mapper.mappedMessages.ContainsKey(message)) //if this coroutine contains the message
+				if (coroutine.mapper.mappedMessages.ContainsKey(message.GetType())) //if this coroutine contains the message
 				{
 					for (int j = 0; j < i; j++)//pop all child coroutines off the stack
 					{
 						coroutines.Pop();
 					}
 					MessageDelegate del;
-					coroutine.mapper.mappedMessages.TryGetValue(message, out del);
-					del(); //call function attached to mapped message
+					coroutine.mapper.mappedMessages.TryGetValue(message.GetType(), out del);
+					del(message); //call function attached to mapped message
+                    break;
 				}
 			}
 		}

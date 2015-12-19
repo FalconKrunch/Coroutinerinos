@@ -41,10 +41,31 @@ namespace Coroutines
 	{
 		public Coroutine()
 		{
-			curEnumeration = function().GetEnumerator();
+            
 		}
-		public virtual IEnumerable function() { return "Empty routine"; }
-		public IEnumerator curEnumeration;
+		public IEnumerable Function
+		{
+			get
+			{
+				return coroutinefunction;
+			}
+			set
+			{
+				coroutinefunction = value;
+				curEnumeration = value.GetEnumerator();
+			}
+		}
+		public IEnumerator CurEnumeration
+		{
+			get
+			{
+				return curEnumeration;
+			}
+		}
+		private IEnumerable coroutinefunction;
+		private IEnumerator curEnumeration;
+		
+		
         public bool shouldTerminate;
         public void Terminate()
         {
@@ -85,15 +106,16 @@ namespace Coroutines
 		}
 		IEnumerable Update()
 		{
-			shouldSwitch = false;
+			Redo:
+			shouldSwitch = false;			
 			if (coroutines.Count == 0) //early out
 				yield break;
 			
-			while (coroutines.Peek().curEnumeration.MoveNext()) //move to next yield
+			while (coroutines.Peek().CurEnumeration.MoveNext()) //move to next yield
 			{
-				var value = coroutines.Peek().curEnumeration.Current; //accept any return value, this is because we don't want a InvalidCastException
+				var value = coroutines.Peek().CurEnumeration.Current; //accept any return value, this is because we don't want a InvalidCastException
 				Type type = value.GetType();
-				if (type.IsSubclassOf(typeof(Coroutine))) //if type is a subclass of coroutine, add it to the stack and set switch flag
+				if (type == typeof(Coroutine)) //if type is a subclass of coroutine, add it to the stack and set switch flag
 				{
 					coroutines.Push((Coroutine)value);
 					shouldSwitch = true;
@@ -109,13 +131,14 @@ namespace Coroutines
 			if (!shouldSwitch)
 			{
 				coroutines.Pop();
+				goto Redo;
 			}
 		}
 		public void Tick()
 		{
 			foreach(var value in Update())
 			{
-				Console.WriteLine(value);
+				//Console.WriteLine(value);
 			}
 		}
 
